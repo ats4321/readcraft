@@ -61,6 +61,12 @@ Or run against another folder:
 GEMINI_API_KEY=your_key node dist/index.js /path/to/project
 ```
 
+Using Anthropic:
+
+```bash
+ANTHROPIC_API_KEY=your_key node dist/index.js --provider anthropic
+```
+
 ## CLI options
 
 - `--print`: print the generated README to stdout
@@ -69,7 +75,8 @@ GEMINI_API_KEY=your_key node dist/index.js /path/to/project
 - `--sections <list>`: generate only selected sections
 - `--interactive`: prompt for project name, description, and extra context
 - `--yes`: skip write confirmation prompt
-- `--api-key <key>`: pass API key directly (environment variable is recommended)
+- `--provider <provider>`: choose AI provider (`auto`, `gemini`, `google`, `anthropic`)
+- `--api-key <key>`: pass API key directly for the selected provider
 
 ## Project structure
 

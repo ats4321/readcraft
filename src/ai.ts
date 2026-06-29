@@ -1,22 +1,66 @@
+import Anthropic from "@anthropic-ai/sdk";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 import type { GenerateOptions, ProjectContext } from "./types.js";
 
-const MODEL = "gemini-1.5-pro";
+type ResolvedProvider = "gemini" | "anthropic";
+
+const MODELS: Record<ResolvedProvider, string> = {
+  gemini: "gemini-1.5-pro",
+  anthropic: "claude-sonnet-4-6",
+};
 
 const SYSTEM_PROMPT = `You are an expert technical writer. You generate README.md files for software projects.
 Your output is always valid Markdown, professional, and accurate to the actual project.
 Never invent features. Only describe what you can see in the provided context.
 Do not include a preamble or explanation — output only the README content.`;
 
-function resolveApiKey(options: GenerateOptions): string {
-  const apiKey = options.apiKey ?? process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY;
-  if (!apiKey) {
+function normalizeProvider(
+  provider: GenerateOptions["provider"],
+): "auto" | "gemini" | "anthropic" {
+  if (!provider) {
+    return "auto";
+  }
+
+  return provider === "google" ? "gemini" : provider;
+}
+
+function resolveProvider(options: GenerateOptions): ResolvedProvider {
+  const requested = normalizeProvider(options.provider);
+  if (requested && requested !== "auto") {
+    return requested;
+  }
+
+  if (process.env.ANTHROPIC_API_KEY && !process.env.GEMINI_API_KEY && !process.env.GOOGLE_API_KEY) {
+    return "anthropic";
+  }
+
+  return "gemini";
+}
+
+function resolveApiKey(provider: ResolvedProvider, options: GenerateOptions): string {
+  if (options.apiKey) {
+    return options.apiKey;
+  }
+
+  if (provider === "gemini") {
+    const apiKey = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY;
+    if (apiKey) {
+      return apiKey;
+    }
     throw new Error(
-      "Missing Gemini API key. Set GEMINI_API_KEY (or GOOGLE_API_KEY) or pass --api-key. Get a key at https://aistudio.google.com/app/apikey.",
+      "Missing API key for Gemini/Google. Set GEMINI_API_KEY (or GOOGLE_API_KEY), or pass --api-key with --provider gemini.",
     );
   }
-  return apiKey;
+
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (apiKey) {
+    return apiKey;
+  }
+
+  throw new Error(
+    "Missing API key for Anthropic. Set ANTHROPIC_API_KEY, or pass --api-key with --provider anthropic.",
+  );
 }
 
 function formatScripts(scripts: Record<string, string>): string {
@@ -90,9 +134,9 @@ function extractReadmeText(text: string): string {
   return trimmed;
 }
 
-async function requestReadme(client: GoogleGenerativeAI, userPrompt: string): Promise<string> {
+async function requestGeminiReadme(client: GoogleGenerativeAI, userPrompt: string): Promise<string> {
   const model = client.getGenerativeModel({
-    model: MODEL,
+    model: MODELS.gemini,
     systemInstruction: SYSTEM_PROMPT,
   });
   const response = await model.generateContent(userPrompt);
@@ -101,23 +145,49 @@ async function requestReadme(client: GoogleGenerativeAI, userPrompt: string): Pr
   return extractReadmeText(text);
 }
 
+async function requestAnthropicReadme(client: Anthropic, userPrompt: string): Promise<string> {
+  const response = await client.messages.create({
+    model: MODELS.anthropic,
+    max_tokens: 4096,
+    system: SYSTEM_PROMPT,
+    messages: [{ role: "user", content: userPrompt }],
+  });
+
+  const text = response.content
+    .filter((block): block is Anthropic.TextBlock => block.type === "text")
+    .map((block) => block.text)
+    .join("\n");
+
+  return extractReadmeText(text);
+}
+
+async function withSingleRetry(requestName: string, fn: () => Promise<string>): Promise<string> {
+  try {
+    return await fn();
+  } catch (firstError) {
+    try {
+      return await fn();
+    } catch {
+      const message =
+        firstError instanceof Error ? firstError.message : `Unknown error from ${requestName}.`;
+      throw new Error(`${requestName} request failed after retry: ${message}`);
+    }
+  }
+}
+
 export async function generateReadme(
   context: ProjectContext,
   options: GenerateOptions,
 ): Promise<string> {
-  const apiKey = resolveApiKey(options);
+  const provider = resolveProvider(options);
+  const apiKey = resolveApiKey(provider, options);
   const userPrompt = buildUserPrompt(context, options);
-  const client = new GoogleGenerativeAI(apiKey);
 
-  try {
-    return await requestReadme(client, userPrompt);
-  } catch (firstError) {
-    try {
-      return await requestReadme(client, userPrompt);
-    } catch {
-      const message =
-        firstError instanceof Error ? firstError.message : "Unknown error from Gemini API.";
-      throw new Error(`Gemini API request failed after retry: ${message}`);
-    }
+  if (provider === "gemini") {
+    const client = new GoogleGenerativeAI(apiKey);
+    return withSingleRetry("Gemini API", () => requestGeminiReadme(client, userPrompt));
   }
+
+  const client = new Anthropic({ apiKey });
+  return withSingleRetry("Anthropic API", () => requestAnthropicReadme(client, userPrompt));
 }

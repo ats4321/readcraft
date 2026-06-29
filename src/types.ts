@@ -23,4 +23,5 @@ export interface GenerateOptions {
   interactive: boolean;
   yes: boolean;
   apiKey?: string;
+  provider?: "auto" | "gemini" | "google" | "anthropic";
 }

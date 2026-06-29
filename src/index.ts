@@ -20,6 +20,7 @@ interface CliOptions {
   interactive?: boolean;
   yes?: boolean;
   apiKey?: string;
+  provider?: "auto" | "gemini" | "google" | "anthropic";
 }
 
 async function applyInteractivePrompts(context: ProjectContext): Promise<ProjectContext> {
@@ -72,13 +73,14 @@ function toGenerateOptions(options: CliOptions): GenerateOptions {
     interactive: options.interactive ?? false,
     yes: options.yes ?? false,
     apiKey: options.apiKey,
+    provider: options.provider ?? "auto",
   };
 }
 
 function renderError(error: unknown): string {
   if (error instanceof Error) {
-    if (error.message.includes("Missing Gemini API key")) {
-      return `${error.message}\nSet GEMINI_API_KEY (or GOOGLE_API_KEY) in your environment or pass --api-key.`;
+    if (error.message.includes("Missing API key")) {
+      return `${error.message}\nSupported env vars: GEMINI_API_KEY, GOOGLE_API_KEY, ANTHROPIC_API_KEY.`;
     }
     return error.message;
   }
@@ -98,7 +100,8 @@ async function run(): Promise<void> {
     .option("--sections <list>", "comma-separated sections to generate")
     .option("--interactive", "prompt for project details and extra context")
     .option("--yes", "skip confirmation prompts")
-    .option("--api-key <key>", "Gemini API key")
+    .option("--provider <provider>", "AI provider: auto|gemini|google|anthropic", "auto")
+    .option("--api-key <key>", "API key for selected provider")
     .action(async (directory: string, rawOptions: CliOptions) => {
       const options = toGenerateOptions(rawOptions);
       let context = await scanProject(directory);
