@@ -52,19 +52,45 @@ readcraft --help
 ```bash
 npm install
 npm run build
-GEMINI_API_KEY=your_key node dist/index.js
+node dist/index.js --help
 ```
 
-Or run against another folder:
+## Choose your API provider
+
+Readcraft supports multiple providers through `--provider`:
+
+- `auto` (default): picks from available environment variables
+- `gemini` or `google`: uses Gemini via Google AI Studio
+- `anthropic`: uses Anthropic Claude
+
+### Gemini or Google
 
 ```bash
-GEMINI_API_KEY=your_key node dist/index.js /path/to/project
+GEMINI_API_KEY=your_key node dist/index.js --provider gemini
 ```
 
-Using Anthropic:
+You can also use:
+
+```bash
+GOOGLE_API_KEY=your_key node dist/index.js --provider google
+```
+
+### Anthropic
 
 ```bash
 ANTHROPIC_API_KEY=your_key node dist/index.js --provider anthropic
+```
+
+### Pass key directly with flag
+
+```bash
+node dist/index.js --provider anthropic --api-key your_key
+```
+
+### Run against another folder
+
+```bash
+GEMINI_API_KEY=your_key node dist/index.js /path/to/project
 ```
 
 ## CLI options
