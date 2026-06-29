@@ -1,0 +1,34 @@
+{
+  "name": "readme-gen",
+  "version": "0.1.0",
+  "description": "AI-powered README generator CLI",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "readme-gen": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --ext .ts",
+    "test": "vitest run"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "chalk": "^5.4.1",
+    "commander": "^14.0.0",
+    "glob": "^11.0.3",
+    "ora": "^8.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.30",
+    "@typescript-eslint/eslint-plugin": "^8.34.1",
+    "@typescript-eslint/parser": "^8.34.1",
+    "eslint": "^9.30.1",
+    "typescript": "^5.8.3",
+    "vitest": "^2.0.5"
+  }
+}
