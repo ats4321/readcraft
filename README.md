@@ -39,7 +39,7 @@ In other words, Readcraft writes its own documentation, which is a direct demo o
 curl -fsSL https://raw.githubusercontent.com/ats4321/readcraft/main/install.sh | bash
 ```
 
-The installer tries a prebuilt binary first, then falls back to npm install if no release binary is available.
+The installer tries a prebuilt binary first. If no release binary is available, it falls back to npm, then to GitHub source install when npm package is unavailable.
 
 ## Quick start
 

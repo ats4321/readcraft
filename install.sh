@@ -83,7 +83,12 @@ install_binary() {
 install_npm() {
   need_cmd npm
   log "Installing ${NPM_PACKAGE} with npm..."
-  npm install -g "$NPM_PACKAGE"
+  if npm install -g "$NPM_PACKAGE"; then
+    return 0
+  fi
+
+  warn "npm package ${NPM_PACKAGE} not found. Trying GitHub source..."
+  npm install -g "github:${REPO}"
 }
 
 print_path_hint() {
