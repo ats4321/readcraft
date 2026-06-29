@@ -1,11 +1,11 @@
 {
-  "name": "readme-gen",
+  "name": "readcraft",
   "version": "0.1.0",
   "description": "AI-powered README generator CLI",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "readme-gen": "dist/index.js"
+    "readcraft": "dist/index.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",

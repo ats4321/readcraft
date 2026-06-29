@@ -14,7 +14,7 @@ const fixturesDir = path.join(__dirname, "fixtures");
 const tempDirectories: string[] = [];
 
 async function copyFixtureToTemp(fixtureName: string): Promise<string> {
-  const tempDir = await mkdtemp(path.join(os.tmpdir(), "readme-gen-test-"));
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), "readcraft-test-"));
   tempDirectories.push(tempDir);
 
   const fixtureSource = path.join(fixturesDir, fixtureName);

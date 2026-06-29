@@ -89,7 +89,7 @@ async function run(): Promise<void> {
   const program = new Command();
 
   program
-    .name("readme-gen")
+    .name("readcraft")
     .description("AI-powered README generator")
     .argument("[directory]", "directory to scan", process.cwd())
     .option("--print", "print generated README to stdout")

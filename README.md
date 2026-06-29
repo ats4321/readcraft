@@ -43,6 +43,12 @@ The installer tries a prebuilt binary first, then falls back to npm install if n
 
 ## Quick start
 
+After install, run:
+
+```bash
+readcraft --help
+```
+
 ```bash
 npm install
 npm run build

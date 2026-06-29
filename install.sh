@@ -3,8 +3,8 @@ set -euo pipefail
 
 REPO="${REPO:-ats4321/readcraft}"
 BIN_NAME="${BIN_NAME:-readcraft}"
-NPM_PACKAGE="${NPM_PACKAGE:-readme-gen}"
-NPM_BIN="${NPM_BIN:-readme-gen}"
+NPM_PACKAGE="${NPM_PACKAGE:-readcraft}"
+NPM_BIN="${NPM_BIN:-readcraft}"
 INSTALL_METHOD="${INSTALL_METHOD:-auto}" # auto|binary|npm
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
 
