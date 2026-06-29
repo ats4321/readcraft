@@ -49,8 +49,14 @@ install_binary() {
   tmpdir="$(mktemp -d)"
   archive_path="$tmpdir/${BIN_NAME}.tar.gz"
 
+  log "Checking for prebuilt ${BIN_NAME} binary (${os}/${arch})..."
+  if ! curl -fsSI "$url" >/dev/null 2>&1; then
+    rm -rf "$tmpdir"
+    return 1
+  fi
+
   log "Installing ${BIN_NAME} (${os}/${arch}) from GitHub releases..."
-  if ! curl -fsSL "$url" -o "$archive_path"; then
+  if ! curl -fsSL "$url" -o "$archive_path" 2>/dev/null; then
     rm -rf "$tmpdir"
     return 1
   fi
@@ -107,7 +113,7 @@ main() {
         print_path_hint
         "$INSTALL_DIR/$BIN_NAME" --help >/dev/null 2>&1 || warn "Installed binary did not run with --help."
       else
-        warn "Binary release not found. Falling back to npm."
+        log "No prebuilt binary found for your platform. Falling back to npm."
         install_npm
         command -v "$NPM_BIN" >/dev/null 2>&1 || warn "${NPM_BIN} not found on PATH yet."
       fi
